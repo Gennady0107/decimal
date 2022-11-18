@@ -215,3 +215,69 @@ int s21_negate(s21_decimal value, s21_decimal *result){
     return res;
 }
 // -- END OTHERS --
+
+// -- ARITHMETICS --
+// s21_decimal* sum(s21_decimal* x, s21_decimal* y) {
+int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
+     //pass
+}
+
+void simple_sum(s21_decimal *value_1, s21_decimal *value_2, s21_decimal *result) {
+    char bit_in_mind = 0;
+    int v1, v2, r;
+    int last_idx = 95;
+
+    for (int idx = 0; idx <= last_idx; idx++) {
+        v1 = s21_get_bit(value_1, idx);
+        printf("%d+", v1);
+        v2 = s21_get_bit(value_2, idx);
+        printf("%d", v2);
+        r = v1 + v2 + bit_in_mind;
+        switch (r) {
+            case 3:
+                bit_in_mind = 1, r = 1;
+                break;
+            case 2:
+                bit_in_mind = 1, r = 0;
+                break;
+            case 1:
+                bit_in_mind = 0, r = 1;
+                break;
+            case 0:
+                bit_in_mind = 0, r = 0;
+                break;   
+            default:
+                printf("error!");
+                break;
+        }
+        s21_set_bit(result, r, idx);
+        printf("=%d", s21_get_bit(result, idx));
+        if (bit_in_mind) printf(" %d bit_in_mind", bit_in_mind);
+        printf("\n");
+    }
+    if (bit_in_mind == 1) {
+        printf("1 lol");
+    }
+    printf("\n");
+}
+// 10101010001001010
+//   в числе х 128 бит
+//   в числе у 128 бит
+//   есть бит в уме (1 или 0)
+
+//   складываем числа х и у справа налево
+//   если встречаем 0 и 0, то в новое число кладем 0 (бит в уме равен 0)
+//   если встречаем 1 и 0 (0 и 1), то в новое число кладем 1 (бит в уме равен 0)
+//   если встречаем 1 и 1, то в нове число кладем 0 (бит в уме равен 1)
+
+//   после того, как положили в новое число результат предыдущей операции
+//   смотрим на бит в уме, если бит в уме равен 0, то результа не меняем
+  
+//   если бит в уме равен 1, то результат надо поменять
+//   если результат предыдущей операции равен 0, то меняем на 1, а бит в уме обнуляем
+//   если результат предыдущей операции равен 1, то меняем на 0, а бит в уме остается 1 на следующий шаг
+
+//   в конце, если бит в уме есть, то сносим его на самое крайнее левое положение
+//   если бита нет, то не сносим
+// }
+// -- END ARITHMETICS --

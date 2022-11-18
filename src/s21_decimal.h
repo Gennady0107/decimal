@@ -67,6 +67,10 @@ int s21_truncate(s21_decimal value, s21_decimal *result);
 int s21_negate(s21_decimal value, s21_decimal *result);
 // -- END OTHERS --
 
+// -- ARITHMETICS --
+void simple_sum(s21_decimal *value_1, s21_decimal *value_2, s21_decimal *result);
+// -- END ARITHMETICS --
+
 void print_bit(int x);
 
 #endif  // SRC_S21_DECIMAL_H_
