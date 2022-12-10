@@ -217,9 +217,29 @@ int s21_negate(s21_decimal value, s21_decimal *result){
 // -- END OTHERS --
 
 // -- ARITHMETICS --
-// s21_decimal* sum(s21_decimal* x, s21_decimal* y) {
 int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
-     //pass
+    int error_code = 0;
+    int k1, k2;
+    k1 = s21_get_sign(&value_1);
+    k2 = s21_get_sign(&value_2);
+    if (k1 == 0 && k2 == 1) {
+        s21_set_positive_sign(&value_2);
+        error_code = s21_res(value_1, value_2, result);
+    } else if (k1 == 1 && k2 == 0) {
+        s21_set_positive_sign(&value_1);
+        error_code = s21_res(value_2, value_1, result);
+    } else {
+        if (k1 == 1 && k2 == 1) {
+            s21_set_negative_sign(result);
+        }
+        // main logic of the add func
+        // error_code = 0;
+    }
+    return error_code;
+}
+
+int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
+    //pass
 }
 
 void simple_sum(s21_decimal *value_1, s21_decimal *value_2, s21_decimal *result) {

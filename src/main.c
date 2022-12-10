@@ -86,18 +86,18 @@ typedef struct {
 
 int main () {
     int v1 = 7;
-    int v2 = 7;
+    int v2 = -7;
     s21_decimal* value_1;
     s21_decimal* value_2;
-    s21_decimal* result;
 
     s21_init_decimal(&value_1);
     s21_init_decimal(&value_2);
-    s21_init_decimal(&result);
 
     s21_from_int_to_decimal(v1, value_1);
     s21_from_int_to_decimal(v2, value_2);
-    simple_sum(value_1, value_2, result);
+
+    printf("sign v1 %d\n", s21_get_sign(value_1));
+    printf("sign v2 %d\n", s21_get_sign(value_2));
 
     printf("\n");
     return 0;

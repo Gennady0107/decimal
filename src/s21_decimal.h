@@ -68,6 +68,9 @@ int s21_negate(s21_decimal value, s21_decimal *result);
 // -- END OTHERS --
 
 // -- ARITHMETICS --
+int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);
+int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);
+
 void simple_sum(s21_decimal *value_1, s21_decimal *value_2, s21_decimal *result);
 // -- END ARITHMETICS --
 
