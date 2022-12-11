@@ -23,6 +23,12 @@ typedef union {
 #define ARR_NUM(x) ((x) / 32)
 #define ARR_SIGN 3
 #define ARR_SCALE 3
+#define OLD_BITS 2
+#define MIDL_BITS 1
+#define JUN_BITS 0
+
+
+
 
 #define OK 0
 #define CONVERSION_ERROR 1
@@ -48,8 +54,9 @@ void s21_set_positive_sign(s21_decimal* dec);
 int s21_get_sign(s21_decimal* dec);
 int s21_get_scale(s21_decimal* dec);
 void s21_set_scale(s21_decimal* dec, int scale);
-void s21_copy_decimal(s21_decimal* src, s21_decimal* dst);
+void s21_copy_decimal(s21_decimal* dst, s21_decimal* src);
 int s21_is_correct_decimal(s21_decimal* dec);
+int simple_decimal_shift(s21_decimal* value_1);
 // -- END FOUNDATION --
 
 // -- CONVERTERS --
@@ -70,8 +77,9 @@ int s21_negate(s21_decimal value, s21_decimal *result);
 // -- ARITHMETICS --
 int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);
 int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);
-
+void pow_10_n(s21_decimal* result, int n);
 void simple_sum(s21_decimal *value_1, s21_decimal *value_2, s21_decimal *result);
+int simple_mult(s21_decimal* value_1, s21_decimal* value_2, s21_decimal* result);
 // -- END ARITHMETICS --
 
 void print_bit(int x);

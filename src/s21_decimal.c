@@ -188,7 +188,7 @@ int s21_truncate(s21_decimal value, s21_decimal *result) {
     return OK;
 }
 
-void s21_copy_decimal(s21_decimal* src, s21_decimal* dst) {
+void s21_copy_decimal(s21_decimal* dst, s21_decimal* src) {
     s21_reset_decimal(dst);
     int size_bits_in_decimal = 4;
     int num_bits = 32;
@@ -202,7 +202,7 @@ int s21_negate(s21_decimal value, s21_decimal *result){
     int res;
     if (s21_is_correct_decimal(&value)) {
         s21_reset_decimal(result);
-        s21_copy_decimal(&value, result);
+        s21_copy_decimal(result, &value);
         if (s21_get_sign(result) == 0) {
             s21_set_negative_sign(result);
         } else {
@@ -224,10 +224,10 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     k2 = s21_get_sign(&value_2);
     if (k1 == 0 && k2 == 1) {
         s21_set_positive_sign(&value_2);
-        error_code = s21_res(value_1, value_2, result);
+        error_code = s21_sub(value_1, value_2, result);
     } else if (k1 == 1 && k2 == 0) {
         s21_set_positive_sign(&value_1);
-        error_code = s21_res(value_2, value_1, result);
+        error_code = s21_sub(value_2, value_1, result);
     } else {
         if (k1 == 1 && k2 == 1) {
             s21_set_negative_sign(result);
@@ -242,6 +242,29 @@ int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     //pass
 }
 
+void pow_10_n(s21_decimal* result, int n) {
+    int src = 10;
+    s21_decimal* a, *tmp_value;
+    s21_init_decimal(&a);
+    s21_init_decimal(&tmp_value);
+    s21_from_int_to_decimal(src, a);
+    s21_from_int_to_decimal(src, result);
+
+    if (n == 0) { 
+        s21_from_int_to_decimal(1, result);
+    } else {
+        for (int i = 1; i < n; i++) {
+            for (int j = 1; j < 10; j++) {
+                s21_copy_decimal(tmp_value, result);
+                simple_sum(tmp_value, a, result);
+            }
+            s21_copy_decimal(a, result);
+        }
+    }
+    s21_free_decimal(a);
+    s21_free_decimal(tmp_value);
+}
+
 void simple_sum(s21_decimal *value_1, s21_decimal *value_2, s21_decimal *result) {
     char bit_in_mind = 0;
     int v1, v2, r;
@@ -249,9 +272,9 @@ void simple_sum(s21_decimal *value_1, s21_decimal *value_2, s21_decimal *result)
 
     for (int idx = 0; idx <= last_idx; idx++) {
         v1 = s21_get_bit(value_1, idx);
-        printf("%d+", v1);
+        //printf("%d+", v1);
         v2 = s21_get_bit(value_2, idx);
-        printf("%d", v2);
+        //printf("%d", v2);
         r = v1 + v2 + bit_in_mind;
         switch (r) {
             case 3:
@@ -271,15 +294,85 @@ void simple_sum(s21_decimal *value_1, s21_decimal *value_2, s21_decimal *result)
                 break;
         }
         s21_set_bit(result, r, idx);
-        printf("=%d", s21_get_bit(result, idx));
-        if (bit_in_mind) printf(" %d bit_in_mind", bit_in_mind);
-        printf("\n");
+        //printf("=%d", s21_get_bit(result, idx));
+        //if (bit_in_mind) printf(" %d bit_in_mind", bit_in_mind);
+        //printf("\n");
     }
     if (bit_in_mind == 1) {
-        printf("1 lol");
+        //printf("1 lol");
     }
-    printf("\n");
+    //printf("\n");
 }
+
+// int simple_mult(s21_decimal* value_1, s21_decimal* value_2, s21_decimal* result) {
+//     int error = 0;
+
+//     s21_decimal *tmp1, *tmp2;
+//     s21_init_decimal(&tmp1);
+//     s21_init_decimal(&tmp2);
+
+//     s21_copy_decimal(result, value_1);
+//     s21_copy_decimal(tmp2, value_1);
+//     for (int idx = 0; idx < 96 && error != 1; idx++) {
+//         s21_copy_decimal(tmp1, result);
+//         error = simple_decimal_shift(tmp2);
+//         if ((s21_get_bit(value_2, idx) == 1) && error != 1) {
+//             simple_sum(tmp1, tmp2, result);
+//         }      
+//     }
+//     s21_free_decimal(tmp1);
+//     s21_free_decimal(tmp2);
+//     return error;
+// }
+
+int simple_mult(s21_decimal* value_1, s21_decimal* value_2, s21_decimal* result) {
+    int error = 0;
+
+    s21_decimal *tmp1, *tmp2, *shifted_value_1;
+    s21_init_decimal(&tmp1);
+    s21_init_decimal(&tmp2);
+    s21_init_decimal(&shifted_value_1);
+
+    s21_copy_decimal(shifted_value_1, value_1);
+    s21_reset_decimal(result);
+    for (int idx = 0; idx < 96 && error != 1; idx++) {
+        if (s21_get_bit(value_2, idx) == 0) {
+            s21_reset_decimal(tmp1);
+        }
+        if (s21_get_bit(value_2, idx) == 1) {
+            s21_copy_decimal(tmp1, shifted_value_1);
+        }
+        s21_copy_decimal(tmp2, result);
+        simple_sum(tmp1, tmp2, result);
+        simple_decimal_shift(shifted_value_1);  
+    }
+    s21_free_decimal(tmp1);
+    s21_free_decimal(tmp2);
+    s21_free_decimal(shifted_value_1);
+    return error;
+}
+
+int simple_decimal_shift(s21_decimal* value_1) {
+    int idx_last_jun_bit = 31;
+    int idx_first_midl_bit = 32;
+    int idx_last_midl_bit = 63;
+    int idx_first_old_bit = 64;
+    int idx_last_old_bit = 95;
+    int error = 0;
+
+    if (s21_get_bit(value_1, idx_last_old_bit) == 1) {
+        error = 1;
+    } else {
+        value_1->bits[OLD_BITS] = value_1->bits[OLD_BITS] << 1;
+        s21_set_bit(value_1, s21_get_bit(value_1, idx_last_midl_bit), idx_first_old_bit);
+        value_1->bits[MIDL_BITS] = value_1->bits[MIDL_BITS] << 1;
+        s21_set_bit(value_1, s21_get_bit(value_1, idx_last_jun_bit), idx_first_midl_bit);
+        value_1->bits[JUN_BITS] = value_1->bits[JUN_BITS] << 1;
+    }
+    return error;
+}
+
+
 // 10101010001001010
 //   в числе х 128 бит
 //   в числе у 128 бит

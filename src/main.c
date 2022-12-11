@@ -1,10 +1,18 @@
 #include "s21_decimal.h"
 
+// void print_dec(s21_decimal* dec) {
+//     for (int i = 0; i < 4; i++) {
+//         printf("%d: ", i);
+//         print_bit(dec->bits[i]);
+//     }
+// }
+
 void print_dec(s21_decimal* dec) {
-    for (int i = 0; i < 4; i++) {
-        printf("%d: ", i);
-        print_bit(dec->bits[i]);
+    for (int idx = 95; idx >= 0; idx--) {
+        int bit = s21_get_bit(dec, idx);
+        printf("%d", bit);
     }
+    printf("\n");
 }
 
 typedef struct {
@@ -84,25 +92,42 @@ typedef struct {
 //     return 0;
 // }
 
-int main () {
-    int v1 = 7;
-    int v2 = -7;
-    s21_decimal* value_1;
-    s21_decimal* value_2;
+// int main () {
+//     int v1 = 7;
+//     int v2 = -7;
+//     s21_decimal* value_1;
+//     s21_decimal* value_2;
 
-    s21_init_decimal(&value_1);
-    s21_init_decimal(&value_2);
+//     s21_init_decimal(&value_1);
+//     s21_init_decimal(&value_2);
 
-    s21_from_int_to_decimal(v1, value_1);
-    s21_from_int_to_decimal(v2, value_2);
+//     s21_from_int_to_decimal(v1, value_1);
+//     s21_from_int_to_decimal(v2, value_2);
 
-    printf("sign v1 %d\n", s21_get_sign(value_1));
-    printf("sign v2 %d\n", s21_get_sign(value_2));
+//     printf("sign v1 %d\n", s21_get_sign(value_1));
+//     printf("sign v2 %d\n", s21_get_sign(value_2));
 
-    printf("\n");
+//     printf("\n");
+//     return 0;
+// }
+
+int main() {
+    // 10^0 = 1
+    // 10^1 = 1010
+    // 10^5 = 11000011010100000
+    // 10^27 = 110011101100101110001111001001111111010000100000000011110011101000000000000000000000000000
+    // 10^28 = 1000000100111111001110010111100011111000100101000000100110000100010000000000000000000000000000
+    s21_decimal* v1;
+    s21_decimal *v2, *result;
+    s21_init_decimal(&v1);
+    s21_init_decimal(&v2);
+    s21_init_decimal(&result);
+    s21_from_int_to_decimal(5, v1);
+    s21_from_int_to_decimal(2, v2);
+    simple_mult(v1, v2, result);
+    print_dec(result);
     return 0;
 }
-
 
 // int main() {
 //     int x = 5;
