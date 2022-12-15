@@ -220,6 +220,7 @@ int s21_negate(s21_decimal value, s21_decimal *result){
 int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     int error_code = 0;
     int k1, k2;
+    s21_reset_decimal(result);
     k1 = s21_get_sign(&value_1);
     k2 = s21_get_sign(&value_2);
     if (k1 == 0 && k2 == 1) {
@@ -231,7 +232,46 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     } else {
         if (k1 == 1 && k2 == 1) {
             s21_set_negative_sign(result);
+            s21_set_positive_sign(&value_1);
+            s21_set_positive_sign(&value_2);
         }
+        int scl_v1, scl_v2;
+        scl_v1 = s21_get_scale(&value_1);
+        scl_v2 = s21_get_scale(&value_2);
+        if (scl_v1 == scl_v2) {
+            simple_sum(&value_1, &value_2, result);
+            s21_set_scale(result, scl_v1);
+            error_code = 0;
+        } else if (scl_v1 > scl_v2) {
+            int dif_scl;
+            dif_scl = scl_v1 - scl_v2;
+            s21_decimal *for_pow_10_n, *tmp_v2;
+            s21_init_decimal(&for_pow_10_n);
+            s21_init_decimal(&tmp_v2);
+            pow_10_n(for_pow_10_n, dif_scl);
+            simple_mult(&value_2, for_pow_10_n, tmp_v2);
+            simple_sum(&value_1, tmp_v2, result);
+            s21_free_decimal(for_pow_10_n);
+            s21_free_decimal(tmp_v2);
+            s21_set_scale(result, scl_v1);
+            error_code = 0;
+        } else {
+            int dif_scl;
+            dif_scl = scl_v2 - scl_v1;
+            s21_decimal *for_pow_10_n, *tmp_v1;
+            s21_init_decimal(&for_pow_10_n);
+            s21_init_decimal(&tmp_v1);
+            pow_10_n(for_pow_10_n, dif_scl);
+            simple_mult(&value_1, for_pow_10_n, tmp_v1);
+            simple_sum(&value_2, tmp_v1, result);
+            s21_free_decimal(for_pow_10_n);
+            s21_free_decimal(tmp_v1);
+            s21_set_scale(result, scl_v2);
+            error_code = 0;
+        }
+        
+        // e1 > e2
+        // e2 > e1
         // main logic of the add func
         // error_code = 0;
     }

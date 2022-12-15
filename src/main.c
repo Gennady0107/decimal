@@ -117,18 +117,24 @@ int main() {
     // 10^5 = 11000011010100000
     // 10^27 = 110011101100101110001111001001111111010000100000000011110011101000000000000000000000000000
     // 10^28 = 1000000100111111001110010111100011111000100101000000100110000100010000000000000000000000000000
-    s21_decimal* v1;
+    s21_decimal *v1;
     s21_decimal *v2, *result;
     s21_init_decimal(&v1);
     s21_init_decimal(&v2);
     s21_init_decimal(&result);
-    s21_from_int_to_decimal(5, v1);
-    s21_from_int_to_decimal(2, v2);
-    simple_mult(v1, v2, result);
+    s21_from_int_to_decimal(999999999, v1);
+    s21_from_int_to_decimal(13, v2);
+    s21_set_scale(v1, 0);
+    s21_set_scale(v2, 1);
+    s21_add(*v1, *v2, result);
+    print_dec(v1);
+    print_dec(v2);
+    int n = s21_get_scale(result);
+    printf("scale - %d\n", n);
     print_dec(result);
     return 0;
 }
-
+// 10000000000000000000000000000000000000000000000000000000000000000001110111001101011001010001
 // int main() {
 //     int x = 5;
 //     for (int idx = 31; idx >= 0; idx--) {
