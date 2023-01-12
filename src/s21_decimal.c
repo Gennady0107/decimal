@@ -269,11 +269,6 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
             s21_set_scale(result, scl_v2);
             error_code = 0;
         }
-        
-        // e1 > e2
-        // e2 > e1
-        // main logic of the add func
-        // error_code = 0;
     }
     return error_code;
 }
