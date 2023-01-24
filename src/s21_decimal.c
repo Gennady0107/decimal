@@ -274,7 +274,41 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
 }
 
 int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
-    //pass
+    int k1, k2;
+    k1 = s21_get_sign(&value_1);
+    k2 = s21_get_sign(&value_2);
+
+    if (k1 == 0 && k2 == 0) {
+        if (s21_is_equal(value_1, value_2)) {
+           s21_reset_decimal(result);
+        } else if (s21_is_greater(value_1, value_2) == 1) {
+            /* code */ //result = value_1 - value_2
+        } else {
+            /* code */ //result = value_2 - value_1
+            // s21_set_negative_sign(result)
+        }
+    }
+    if (k1 == 1 && k2 == 1) {
+        s21_set_positiv_sign(value_1);
+        s21_set_positiv_sign(value_2);
+        if (s21_is_equal(value_2, value_1)) {
+           s21_reset_decimal(result);
+        } else if (s21_is_greater(value_2, value_1) == 1) {
+            /* code */ //result = value_2 - value_1
+        } else {
+            /* code */ //result = value_1 - value_2
+            // s21_set_negative_sign(result)
+        }
+    }
+    if (k1 == 0 && k2 == 1) {
+        s21_set_positiv_sign(&value_2);
+        s21_add(value_1, value_2, result);
+    }
+    if (k1 == 1 && k2 == 0) {
+        s21_set_positiv_sign(&value_1);
+        s21_add(value_1, value_2, result);
+        s21_set_negative_sign(result);
+    }
 }
 
 void pow_10_n(s21_decimal* result, int n) {
