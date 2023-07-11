@@ -26,6 +26,7 @@ typedef union {
 #define OLD_BITS 2
 #define MIDL_BITS 1
 #define JUN_BITS 0
+#define END_OF_ARRAY 95
 
 
 
@@ -76,8 +77,8 @@ int simple_compare(s21_decimal *value_1, s21_decimal *value_2);
 // -- END OTHERS --
 
 // -- ARITHMETICS --
-int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);
-int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);
+int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal* result);
+int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal* result);
 void pow_10_n(s21_decimal* result, int n);
 void simple_sum(s21_decimal *value_1, s21_decimal *value_2, s21_decimal *result);
 int simple_mult(s21_decimal* value_1, s21_decimal* value_2, s21_decimal* result);

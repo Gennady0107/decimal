@@ -1,5 +1,6 @@
 #include "s21_decimal.h"
 
+void print_sign(s21_decimal* sign);
 // void print_dec(s21_decimal* dec) {
 //     for (int i = 0; i < 4; i++) {
 //         printf("%d: ", i);
@@ -8,11 +9,21 @@
 // }
 
 void print_dec(s21_decimal* dec) {
+    print_sign(dec);
     for (int idx = 95; idx >= 0; idx--) {
         int bit = s21_get_bit(dec, idx);
         printf("%d", bit);
     }
     printf("\n");
+}
+
+void print_sign(s21_decimal* sign) {
+    int sign_int = s21_get_sign(sign);
+    if (sign_int == 1) {
+        printf("-");
+    } else{
+        printf("+");
+    }
 }
 
 typedef struct {
@@ -119,18 +130,39 @@ int main() {
     // 10^28 = 1000000100111111001110010111100011111000100101000000100110000100010000000000000000000000000000
     s21_decimal *v1;
     s21_decimal *v2, *result;
+    int flag;
     s21_init_decimal(&v1);
     s21_init_decimal(&v2);
     s21_init_decimal(&result);
-    s21_from_int_to_decimal(999999999, v1);
-    s21_from_int_to_decimal(13, v2);
-    s21_set_scale(v1, 0);
-    s21_set_scale(v2, 1);
-    s21_add(*v1, *v2, result);
+
+    int x, y;
+    scanf("%d", &x);
+    scanf("%d", &y);
+    s21_from_int_to_decimal(x, v1);
+    s21_from_int_to_decimal(y, v2);
+    // s21_set_scale(v1, 0);
+    // s21_set_scale(v2, 0);
+    // s21_add(*v1, *v2, result);
     print_dec(v1);
     print_dec(v2);
-    int n = s21_get_scale(result);
-    printf("scale - %d\n", n);
+    // int n = s21_get_scale(result);
+    // printf("scale - %d\n", n);
+    flag = simple_compare(v1, v2);
+    // print_dec(result);
+    if (flag == 1) {
+        printf("(x) %d ", x);
+        printf(">");
+        printf(" %d (y)\n", y);
+    } else if (flag == 2) {
+        printf("(y) %d ", y);
+        printf(">");
+        printf(" %d (x)\n", x);
+    } else if (flag == 0) {
+        printf("(x) %d ", x);
+        printf("=");
+        printf(" %d (y)\n", y);
+    }
+    s21_sub(*v1, *v2, result);
     print_dec(result);
     return 0;
 }
