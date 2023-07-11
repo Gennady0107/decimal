@@ -217,6 +217,7 @@ int s21_negate(s21_decimal value, s21_decimal *result){
 // -- END OTHERS --
 
 // -- ARITHMETICS --
+
 int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     int error_code = 0;
     int k1, k2;
@@ -275,28 +276,46 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
 
 int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     int k1, k2;
+    int bit_v_1, bit_v_2;
+    int flag;
     k1 = s21_get_sign(&value_1);
     k2 = s21_get_sign(&value_2);
 
     if (k1 == 0 && k2 == 0) {
         if (s21_is_equal(value_1, value_2)) {
            s21_reset_decimal(result);
-        } else if (s21_is_greater(value_1, value_2) == 1) {
-            /* code */ //result = value_1 - value_2
-        } else {
-            /* code */ //result = value_2 - value_1
+        } else if (s21_is_compare(value_1, value_2) == 1) {
+            for (int idx = 0; idx < 95; idx++) {
+                bit_v_1 = s21_get_bit(value_1, idx);
+                bit_v_2 = s21_get_bit(value_2, idx);
+                if (bit_v_1 == 1 && bit_v_1 == 0) {
+                    s21_set_bit(result, 1, idx);
+                }
+                if (bit_v_1 == 0 && bit_v_1 == 1) {
+                    for (int idx_tmp = idx; idx_tmp < 95 || s21_get_bit(value_1, idx_tmp) == 1; idx_tmp++) {
+                        /* code */
+                    }
+                    
+                    s21_set_bit(result, 1, idx);
+                }
+                if (bit_v_1 == 0 && bit_v_1 == 0) { s21_set_bit(result, 0, idx); }
+            }
+            
+            
+        } else if (s21_is_compare(value_1, value_2) == 2) {
+            //result = value_2 - value_1
             // s21_set_negative_sign(result)
         }
-    }
+    }/*
     if (k1 == 1 && k2 == 1) {
         s21_set_positiv_sign(value_1);
         s21_set_positiv_sign(value_2);
         if (s21_is_equal(value_2, value_1)) {
            s21_reset_decimal(result);
         } else if (s21_is_greater(value_2, value_1) == 1) {
-            /* code */ //result = value_2 - value_1
+            //result = value_2 - value_1
         } else {
-            /* code */ //result = value_1 - value_2
+            //result = value_1 - value_2
             // s21_set_negative_sign(result)
         }
     }
@@ -308,7 +327,7 @@ int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
         s21_set_positiv_sign(&value_1);
         s21_add(value_1, value_2, result);
         s21_set_negative_sign(result);
-    }
+    }*/
 }
 
 void pow_10_n(s21_decimal* result, int n) {
@@ -332,6 +351,24 @@ void pow_10_n(s21_decimal* result, int n) {
     }
     s21_free_decimal(a);
     s21_free_decimal(tmp_value);
+}
+
+int simple_compare (s21_decimal *value_1, s21_decimal *value_2) {
+    int flag = 0;
+    int v1, v2;
+    for (int idx = 95; idx >= 0 && flag == 0; idx--) {
+        v1 = s21_get_bit(value_1, idx);
+        v2 = s21_get_bit(value_2, idx);
+        // printf("%d - v1\n%d - v2\n", v1, v2);
+        if (v1 > v2) {
+            flag = 1;
+        } else if (v2 > v1) {
+            flag = 2;
+        } else {
+            flag = 0;
+        }
+    }
+    return flag;
 }
 
 void simple_sum(s21_decimal *value_1, s21_decimal *value_2, s21_decimal *result) {
