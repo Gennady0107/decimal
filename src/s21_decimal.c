@@ -176,6 +176,78 @@ int s21_from_decimal_to_float(s21_decimal src, float* dst) {
 // -- END CONVERTERS --
 
 // -- OTHERS --
+int simple_compare(s21_decimal* value_1, s21_decimal* value_2) {
+    int flag = 0;
+    int v1, v2;
+    for (int idx = END_OF_ARRAY; idx >= BEGINNING_OF_ARRAY && flag == 0; idx--) {
+        v1 = s21_get_bit(value_1, idx);
+        v2 = s21_get_bit(value_2, idx);
+        if (v1 > v2) {
+            flag = 1;
+        } else if (v2 > v1) {
+            flag = 2;
+        } else {
+            flag = 0;
+        }
+    }
+    return flag;
+}
+
+int compare_scale(s21_decimal *value_1, s21_decimal *value_2) {
+    int flag = 0;
+    int v1, v2;
+    
+    v1 = s21_get_scale(value_1);
+    v2 = s21_get_scale(value_2);
+    if (v1 > v2) {
+        flag = 1;
+    } else {
+        flag = 2;
+    }
+    return flag;
+}
+
+int compare_sign(s21_decimal *value_1, s21_decimal *value_2) {
+    int flag = 0;
+    int v1, v2;
+    
+    v1 = s21_get_sign(value_1);
+    v2 = s21_get_sign(value_2);
+    if (v1 > v2) {
+        flag = 1;
+    } else {
+        flag = 2;
+    }
+    return flag;
+}
+
+int s21_decimal_equal(s21_decimal* value_1, s21_decimal* value_2) {
+    int flag = 0;
+    int v1, v2;
+
+    v1 = s21_get_sign(value_1);
+    v2 = s21_get_sign(value_2);
+    if (v1 != v2) {
+        flag = 1;
+    }
+    v1 = s21_get_scale(value_1);
+    v2 = s21_get_scale(value_2);
+    if (v1 != v2) {
+        flag = 1;
+    }
+    for (int idx = 95; idx >= 0 && flag == 0; idx--) {
+        v1 = s21_get_bit(value_1, idx);
+        v2 = s21_get_bit(value_2, idx);
+        // printf("%d: v1 = %d, v2 = %d\n", idx, v1, v2);
+        if (v1 != v2) {
+            flag = 1;
+        }
+        // 1. не проверяется знак
+        // 2. не проверяется scale
+    }
+    return flag;
+}
+
 int s21_floor(s21_decimal value, s21_decimal *result) {
     return OK;
 }
@@ -278,11 +350,60 @@ void function_body_sub(s21_decimal v1, s21_decimal v2) {
     ;
 }
 
-int s21_div(s21_decimal value_1, s21_decimal value2, s21_decimal result) {
-    
+// int s21_div(s21_decimal value_1, s21_decimal value_2, s21_decimal result) {
+//     int idx_first_bit = 0;
+//     s21_decimal tmp_divident;
+//     s21_init_decimal(&tmp_divident);
+
+//     for (int i = END_OF_ARRAY; i <= 0; i--) {
+//         s21_set_bit(&tmp_divident, s21_get_bit(&value_1, i), idx_first_bit);
+//         if (simple_compare(&tmp_divident, &value_2) == 1) {
+//             s21_set_bit(&result, 0, idx_first_bit);
+//         } else {
+//             s21_set_bit(&result, 1, idx_first_bit);
+//         }
+//         s21_sub(tmp_divident, value_2, &tmp_divident);
+//         simple_decimal_shift(&tmp_divident);
+//     }
+// }
+
+int simple_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal* result) {
+    int bit_v_1, bit_v_2;
+    int flag = 0;
+    int idx_tmp = 0;
+    s21_decimal* tmp_value_1;
+    s21_init_decimal(&tmp_value_1);
+    s21_copy_decimal(tmp_value_1, &value_1);
+
+    for (int idx = 0; idx <= END_OF_ARRAY; idx++) {
+        bit_v_1 = s21_get_bit(tmp_value_1, idx);
+        bit_v_2 = s21_get_bit(&value_2, idx);
+        if (bit_v_1 == 1 && bit_v_2 == 0) {
+            s21_set_bit(result, 1, idx);
+        } else if (bit_v_1 == 1 && bit_v_2 == 1) {
+            s21_set_bit(result, 0, idx);
+        } else if (bit_v_1 == 0 && bit_v_2 == 1) {
+            for (idx_tmp = idx; idx_tmp <= END_OF_ARRAY && s21_get_bit(tmp_value_1, idx_tmp) == 0; idx_tmp++) {
+                flag = 1;
+                s21_set_bit(tmp_value_1, flag, idx_tmp);
+            }
+                flag = 0;
+                s21_set_bit(tmp_value_1, flag, idx_tmp);
+                idx_tmp = 0;
+            s21_set_bit(result, 1, idx);
+        } else if (bit_v_1 == 0 && bit_v_1 == 0) {
+            s21_set_bit(result, 0, idx);
+        }
+    }
 }
 
-int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal* result) {
+void common_denominator(s21_decimal *value_1, s21_decimal *value_2) {
+    if (compare_scale(value_1, value_2) == 1) {
+        ;
+    }
+}
+
+int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal* result) { // поменять название
     int k1, k2;
     int bit_v_1, bit_v_2;
     int flag = 0;
@@ -294,35 +415,19 @@ int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal* result) {
     k1 = s21_get_sign(tmp_value_1);
     k2 = s21_get_sign(&value_2);
     
-    if (k1 == 1 && k2 == 1) {
+    if (k1 == 1 && k2 == 1) {  // поправить, не правильная логика.
         s21_set_positive_sign(&value_1);
         s21_set_positive_sign(&value_2);
-        simple_sum(&value_1, &value_2, result);
+        simple_sub(*tmp_value_1, value_2, result);
+        s21_set_negative_sign(result);
+        printf("sign_1 = %d sign_2 = %d\n", k1, k2);
+    
     } else if (k1 == 0 && k2 == 0) {
         if (simple_compare(tmp_value_1, &value_2) == 0) {
            s21_reset_decimal(result);
         } else if (simple_compare(tmp_value_1, &value_2) == 1) {
-            printf("v1 > v2\n");
-            for (int idx = 0; idx <= END_OF_ARRAY; idx++) {
-                bit_v_1 = s21_get_bit(tmp_value_1, idx);
-                bit_v_2 = s21_get_bit(&value_2, idx);
-                if (bit_v_1 == 1 && bit_v_2 == 0) {
-                    s21_set_bit(result, 1, idx);
-                } else if (bit_v_1 == 1 && bit_v_2 == 1) {
-                    s21_set_bit(result, 0, idx);
-                } else if (bit_v_1 == 0 && bit_v_2 == 1) {
-                    for (idx_tmp = idx; idx_tmp <= END_OF_ARRAY && s21_get_bit(tmp_value_1, idx_tmp) == 0; idx_tmp++) {
-                        flag = 1;
-                        s21_set_bit(tmp_value_1, flag, idx_tmp);
-                    }
-                        flag = 0;
-                        s21_set_bit(tmp_value_1, flag, idx_tmp);
-                        idx_tmp = 0;
-                    s21_set_bit(result, 1, idx);
-                } else if (bit_v_1 == 0 && bit_v_1 == 0) {
-                    s21_set_bit(result, 0, idx);
-                }
-            }
+            // printf("v1 > v2\n");
+            simple_sub(*tmp_value_1, value_2, result);
         } else if (simple_compare(tmp_value_1, &value_2) == 2) {
             for (int idx = 0; idx <= END_OF_ARRAY; idx++) {
                 bit_v_1 = s21_get_bit(&value_2, idx);
@@ -380,22 +485,7 @@ void pow_10_n(s21_decimal* result, int n) {
     s21_free_decimal(tmp_value);
 }
 
-int simple_compare (s21_decimal* value_1, s21_decimal* value_2) {
-    int flag = 0;
-    int v1, v2;
-    for (int idx = 95; idx >= 0 && flag == 0; idx--) {
-        v1 = s21_get_bit(value_1, idx);
-        v2 = s21_get_bit(value_2, idx);
-        if (v1 > v2) {
-            flag = 1;
-        } else if (v2 > v1) {
-            flag = 2;
-        } else {
-            flag = 0;
-        }
-    }
-    return flag;
-}
+
 
 void simple_sum(s21_decimal* value_1, s21_decimal* value_2, s21_decimal* result) {
     char bit_in_mind = 0;

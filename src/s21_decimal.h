@@ -27,9 +27,7 @@ typedef union {
 #define MIDL_BITS 1
 #define JUN_BITS 0
 #define END_OF_ARRAY 95
-
-
-
+#define BEGINNING_OF_ARRAY 0
 
 #define OK 0
 #define CONVERSION_ERROR 1
@@ -74,6 +72,9 @@ int s21_round(s21_decimal value, s21_decimal *result);
 int s21_truncate(s21_decimal value, s21_decimal *result);
 int s21_negate(s21_decimal value, s21_decimal *result);
 int simple_compare(s21_decimal *value_1, s21_decimal *value_2);
+int s21_decimal_equal(s21_decimal* value_1, s21_decimal* value_2);
+int compare_sign(s21_decimal *value_1, s21_decimal *value_2);
+int compare_scale(s21_decimal *value_1, s21_decimal *value_2);
 // -- END OTHERS --
 
 // -- ARITHMETICS --
@@ -82,6 +83,7 @@ int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal* result);
 void pow_10_n(s21_decimal* result, int n);
 void simple_sum(s21_decimal *value_1, s21_decimal *value_2, s21_decimal *result);
 int simple_mult(s21_decimal* value_1, s21_decimal* value_2, s21_decimal* result);
+int simple_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal* result);
 // -- END ARITHMETICS --
 
 void print_bit(int x);
