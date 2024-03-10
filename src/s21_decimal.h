@@ -56,6 +56,9 @@ void s21_set_scale(s21_decimal* dec, int scale);
 void s21_copy_decimal(s21_decimal* dst, s21_decimal* src);
 int s21_is_correct_decimal(s21_decimal* dec);
 int simple_decimal_shift(s21_decimal* value_1);
+void maxbet_decimal(s21_decimal* dec); // for test
+void print_dec(s21_decimal* dec); // for test
+void print_sign(s21_decimal* dec); // for test
 // -- END FOUNDATION --
 
 // -- CONVERTERS --
@@ -75,6 +78,10 @@ int simple_compare(s21_decimal *value_1, s21_decimal *value_2);
 int s21_decimal_equal(s21_decimal* value_1, s21_decimal* value_2);
 int compare_sign(s21_decimal *value_1, s21_decimal *value_2);
 int compare_scale(s21_decimal *value_1, s21_decimal *value_2);
+int check_for_possibility_pow_10(s21_decimal* verifiable);
+int check_for_possibility_div_10_non_zero(s21_decimal* verifiable);
+int checking_for_zero(s21_decimal value);
+int equalize_scale(s21_decimal* value_1, s21_decimal* value_2);
 // -- END OTHERS --
 
 // -- ARITHMETICS --
@@ -84,6 +91,8 @@ void pow_10_n(s21_decimal* result, int n);
 void simple_sum(s21_decimal *value_1, s21_decimal *value_2, s21_decimal *result);
 int simple_mult(s21_decimal* value_1, s21_decimal* value_2, s21_decimal* result);
 int simple_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal* result);
+void simple_div(s21_decimal* value_1, s21_decimal* value_2, s21_decimal* result);
+// void dev_by_10(s21_decimal* value1, s21_decimal* result);
 // -- END ARITHMETICS --
 
 void print_bit(int x);

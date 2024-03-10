@@ -23,6 +23,31 @@ void s21_reset_decimal(s21_decimal* dec) {
     dec->bits[3] &= 0;
 }
 
+void print_dec(s21_decimal* dec) { // for test
+    print_sign(dec);
+    for (int idx = 95; idx >= 0; idx--) {
+        int bit = s21_get_bit(dec, idx);
+        printf("%d", bit);
+    }
+    printf("\n");
+}
+
+void print_sign(s21_decimal* sign) { // for test
+    int sign_int = s21_get_sign(sign);
+    if (sign_int == 1) {
+        printf("-");
+    } else{
+        printf("+");
+    }
+}
+
+void maxbet_decimal(s21_decimal* dec) { // for test
+    for (int idx = END_OF_ARRAY; idx >= BEGINNING_OF_ARRAY; idx--) {
+        s21_set_bit(dec, 1, idx);
+    }
+    s21_set_positive_sign(dec);
+}
+
 int s21_get_bit(s21_decimal* dec, int idx) {
     return dec->bits[ARR_NUM(idx)] & (1u << ARR_LOC(idx)) ? 1 : 0;
 }
@@ -49,7 +74,7 @@ int s21_get_sign(s21_decimal* dec) {
 }
 
 int s21_get_scale(s21_decimal* dec) {
-    int scale = dec->bits[ARR_SCALE] & SCALE_BITS;
+    int scale = dec->bits[ARR_SCALE] & SCALE_BITS; // зачем тут приравнивать?
     scale = SHIFT_SCALE_TO_START(scale);
     return scale;
 }
@@ -183,10 +208,13 @@ int simple_compare(s21_decimal* value_1, s21_decimal* value_2) {
         v1 = s21_get_bit(value_1, idx);
         v2 = s21_get_bit(value_2, idx);
         if (v1 > v2) {
+                // printf("|||||||||||||||||idx == %d - v1 %d > v2 %d|||||||||||||||||\n", idx, s21_get_bit(value_1, idx), s21_get_bit(value_2, idx));
             flag = 1;
-        } else if (v2 > v1) {
+        } else if (v1 < v2) {
+                // printf("|||||||||||||||||idx == %d - v1 %d < v2 %d|||||||||||||||||\n", idx, s21_get_bit(value_1, idx), s21_get_bit(value_2, idx));
             flag = 2;
-        } else {
+        } else if (v1 == v2) {
+            // printf("|||||||||||||||||idx == %d - v1 %d = v2 %d|||||||||||||||||\n", idx, s21_get_bit(value_1, idx), s21_get_bit(value_2, idx));
             flag = 0;
         }
     }
@@ -235,15 +263,115 @@ int s21_decimal_equal(s21_decimal* value_1, s21_decimal* value_2) {
     if (v1 != v2) {
         flag = 1;
     }
-    for (int idx = 95; idx >= 0 && flag == 0; idx--) {
+    for (int idx = END_OF_ARRAY; idx >= BEGINNING_OF_ARRAY && flag == 0; idx--) {
         v1 = s21_get_bit(value_1, idx);
         v2 = s21_get_bit(value_2, idx);
         // printf("%d: v1 = %d, v2 = %d\n", idx, v1, v2);
         if (v1 != v2) {
             flag = 1;
         }
-        // 1. не проверяется знак
-        // 2. не проверяется scale
+    }
+    return flag;
+}
+
+int check_for_possibility_pow_10 (s21_decimal* verifiable) {
+    int flag = 1;
+    int kol_1 = 0; // количество 1 в dec для проверки на отсутствие нулей в dec
+    s21_decimal* temp,* temp2,* ten;
+    s21_init_decimal(&temp);
+    s21_init_decimal(&temp2);
+    s21_init_decimal(&ten);
+    s21_copy_decimal(temp, verifiable);
+    s21_from_int_to_decimal(10, ten);
+    s21_from_int_to_decimal(0, temp2);
+
+    pow_10_n(temp, 2);
+    simple_div(temp, ten, temp2);
+
+    for (int idx = END_OF_ARRAY; idx >= BEGINNING_OF_ARRAY; idx--) {
+        if (s21_get_bit(verifiable, idx) == 1) {
+            kol_1++;
+        }
+    }
+    if (simple_compare(temp2, verifiable) == 0 && kol_1 >= 1) {
+        flag = 0;
+    }
+    return flag;
+}
+
+int check_for_possibility_div_10_non_zero (s21_decimal* verifiable) {
+    int flag = 1;
+    int kol_1 = 0; // количество 1 в dec для проверки на отсутствие нулей в dec
+    s21_decimal* temp,* ten,* temp2;
+    s21_init_decimal(&temp);
+    s21_init_decimal(&ten);
+    s21_init_decimal(&temp2);
+
+    for (int idx = END_OF_ARRAY; idx >= BEGINNING_OF_ARRAY; idx--) {
+        if (s21_get_bit(verifiable, idx) == 1) {
+            kol_1++;
+        }
+    }
+    if (kol_1 >= 1) {
+        s21_copy_decimal(temp, verifiable);
+        s21_from_int_to_decimal(10, ten);
+        s21_from_int_to_decimal(0, temp2);
+        simple_div(temp, ten, temp2);
+    }
+    kol_1 = 0;
+    for (int idx = END_OF_ARRAY; idx >= BEGINNING_OF_ARRAY; idx--) {
+        if (s21_get_bit(temp2, idx) == 1) {
+            kol_1++;
+        }
+    }
+    if (kol_1 >= 1) {
+        flag = 0;
+    }
+    return flag;
+}
+
+int equalize_scale(s21_decimal* value_1, s21_decimal* value_2) { // Дописать условие на невозможность уменьшения, если это необходимо
+    int scale_v1, scale_v2;
+    int flag = 0;
+    s21_decimal *tmp_v1, *tmp_v2, *ten;
+    int operation_counter = 0;
+
+    s21_init_decimal(&ten);
+    s21_init_decimal(&tmp_v1);
+    s21_init_decimal(&tmp_v2);
+    s21_from_int_to_decimal(10, ten);
+
+    s21_copy_decimal(tmp_v1, value_1);
+    s21_copy_decimal(tmp_v2, value_2);
+    
+    print_dec(tmp_v1);
+    print_dec(tmp_v2);
+    scale_v1 = s21_get_scale(value_1);
+    scale_v2 = s21_get_scale(value_2);
+    printf("scale1 = %d, scale2 = %d\n", s21_get_scale(tmp_v1), s21_get_scale(tmp_v2));
+    while (scale_v1 != scale_v2 && operation_counter == 0) {
+        if (scale_v1 > scale_v2) { // проверять умножение на 10 каждый раз! новое число. && check_for_possibility_pow_10(tmp_v2) == 0
+            scale_v2 = scale_v2 + 1;
+            pow_10_n(tmp_v2, 2);
+            operation_counter++;
+            
+            printf("%d. scale1 = %d, scale2 = %d\n", operation_counter, s21_get_scale(tmp_v1), s21_get_scale(tmp_v2));
+        } else if (scale_v1 < scale_v2) {// && check_for_possibility_div_10_non_zero(tmp_v1) == 0
+            scale_v1 = scale_v1 - 1;
+            simple_div(tmp_v1, ten, tmp_v1);
+            operation_counter++;
+        } else {
+            flag = 1;
+        }
+        operation_counter--;
+    }
+    print_dec(tmp_v1);
+    print_dec(tmp_v2);
+    
+    printf("scale1 = %d, scale2 = %d\n", s21_get_scale(tmp_v1), s21_get_scale(tmp_v2));
+    if (scale_v1 == scale_v2) {
+        s21_set_scale(value_1, scale_v1);
+        s21_set_scale(value_2, scale_v2);
     }
     return flag;
 }
@@ -285,6 +413,17 @@ int s21_negate(s21_decimal value, s21_decimal *result){
         res = CALCULATION_ERROR;
     }
     return res;
+}
+
+
+int checking_for_zero(s21_decimal value) {
+    int flag = 0;
+    for (int idx = END_OF_ARRAY; idx >= BEGINNING_OF_ARRAY && flag == 0; idx--) {
+        if (s21_get_bit(&value, idx) == 1) {
+            flag = 1;
+        }
+    }
+    return flag;
 }
 // -- END OTHERS --
 
@@ -397,6 +536,31 @@ int simple_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal* result) {
     }
 }
 
+void simple_div(s21_decimal* value_1, s21_decimal* value_2, s21_decimal* result) {
+    int flag = 1;
+    s21_decimal* tmp;
+    s21_init_decimal(&tmp);
+
+    flag = checking_for_zero(*value_2);
+    s21_from_int_to_decimal(0, tmp);
+    s21_from_int_to_decimal(0, result);
+    if (simple_compare(value_1, value_2) == 0) {
+        flag = 2;
+    }    
+    for (int idx = END_OF_ARRAY; idx >= BEGINNING_OF_ARRAY && flag == 1; --idx) {
+        simple_decimal_shift(tmp);
+        simple_decimal_shift(result);
+        s21_set_bit(tmp, s21_get_bit(value_1, idx), 0);
+        if (simple_compare(tmp, value_2) == 1 || simple_compare(tmp, value_2) == 0) {
+            s21_set_bit(result, 1, 0);
+            simple_sub(*tmp, *value_2, tmp);
+        } else {
+            s21_set_bit(result, 0, 0);
+        }
+    }
+    s21_free_decimal(tmp);
+}
+
 void common_denominator(s21_decimal *value_1, s21_decimal *value_2) {
     if (compare_scale(value_1, value_2) == 1) {
         ;
@@ -420,7 +584,7 @@ int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal* result) { // 
         s21_set_positive_sign(&value_2);
         simple_sub(*tmp_value_1, value_2, result);
         s21_set_negative_sign(result);
-        printf("sign_1 = %d sign_2 = %d\n", k1, k2);
+        // printf("sign_1 = %d sign_2 = %d\n", k1, k2);
     
     } else if (k1 == 0 && k2 == 0) {
         if (simple_compare(tmp_value_1, &value_2) == 0) {
@@ -485,7 +649,22 @@ void pow_10_n(s21_decimal* result, int n) {
     s21_free_decimal(tmp_value);
 }
 
+// void dev_by_10(s21_decimal* value1, s21_decimal* result) {
+//     int src = 10;
+//     s21_decimal *divider;
+    
+//     s21_init_decimal(&divider);
+//     s21_from_int_to_decimal(src, divider);
+//     s21_copy_decimal(result, value1);
 
+//     // print_dec(result);
+
+//     for (int i = 9; i > 0; i--) {
+//         simple_sub(*result, *divider, result);
+//         // print_dec(result);
+//     }
+//     s21_free_decimal(divider);
+// }
 
 void simple_sum(s21_decimal* value_1, s21_decimal* value_2, s21_decimal* result) {
     char bit_in_mind = 0;
